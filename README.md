@@ -1,9 +1,9 @@
 # Todo Application with Flask, ReactJS, and PostgreSQL
 
-I'll create a full-stack todo application with the following architecture:
-- **Backend**: Python Flask (REST API)
-- **Frontend**: ReactJS
-- **Database**: PostgreSQL
+Full-stack todo application with the following architecture:
+- Backend: Python Flask (REST API)
+- Frontend: ReactJS
+- Database: PostgreSQL
 
 ## System Architecture
 
