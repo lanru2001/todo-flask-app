@@ -142,6 +142,8 @@ test → build → push → deploy-staging → deploy-production (manual)
   "Resource": "*"
 }
 ```
+
+```bash
 todo-app/
 │
 ├── backend/                  # Python Flask REST API
@@ -189,3 +191,4 @@ todo-app/
 │
 ├── docker-compose.yml        # Local dev (all 3 services)
 └── README.md                 # ← you are here
+```
