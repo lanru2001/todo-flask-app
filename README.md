@@ -142,3 +142,50 @@ test → build → push → deploy-staging → deploy-production (manual)
   "Resource": "*"
 }
 ```
+todo-app/
+│
+├── backend/                  # Python Flask REST API
+│   ├── app.py
+│   ├── models.py
+│   ├── config.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── README.md
+│
+├── frontend/                 # ReactJS SPA + Nginx
+│   ├── src/
+│   │   ├── components/       # TodoForm, TodoItem, FilterBar
+│   │   ├── pages/            # TodoPage
+│   │   ├── services/         # todoService (API client)
+│   │   ├── App.js / App.css
+│   │   └── index.js
+│   ├── package.json
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── README.md
+│
+├── database/                 # PostgreSQL image + schema
+│   ├── init.sql              # Schema, indexes, seed data
+│   ├── migrations/           # V2+ incremental SQL migrations
+│   ├── backup.sh             # pg_dump with retention
+│   ├── Dockerfile
+│   └── README.md
+│
+├── kubernetes/               # AWS EKS manifests
+│   ├── 00-namespace.yaml
+│   ├── 01-secrets.yaml
+│   ├── 02-postgres.yaml      # PVC + Deployment + Service
+│   ├── 03-backend.yaml       # Deployment + HPA + Service
+│   ├── 04-frontend.yaml      # Deployment + HPA + Service
+│   ├── 05-ingress.yaml       # AWS ALB + HTTPS
+│   ├── kustomization.yaml
+│   └── README.md
+│
+├── gitlab/                   # GitLab CI/CD
+│   ├── .gitlab-ci.yml        # 5-stage pipeline (copy to root)
+│   ├── variables.env.example # All required CI variables
+│   ├── merge_request_template.md
+│   └── README.md
+│
+├── docker-compose.yml        # Local dev (all 3 services)
+└── README.md                 # ← you are here
