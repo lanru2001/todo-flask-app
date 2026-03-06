@@ -1,2 +1,9 @@
-import React, { useState } from 'react';
-import { Container, CssBaseline }
+import React from 'react';
+import TodoPage from './pages/TodoPage';
+import './App.css';
+
+function App() {
+  return <TodoPage />;
+}
+
+export default App;
