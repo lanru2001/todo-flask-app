@@ -1,0 +1,81 @@
+# ============================================================
+# .github/workflows/deploy-staging.yml
+# Deploy to staging automatically on push to develop
+# ============================================================
+
+name: Deploy — Staging
+
+on:
+  push:
+    branches: [develop]
+
+env:
+  ECR_BACKEND:  ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend
+  ECR_FRONTEND: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend
+  IMAGE_TAG:    ${{ github.sha }}
+  K8S_NAMESPACE: todo-app-staging
+
+jobs:
+
+  deploy-staging:
+    name: Deploy — Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging-todo.yourdomain.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.0
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ secrets.EKS_CLUSTER_NAME }} \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ env.K8S_NAMESPACE }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        run: |
+          for f in kubernetes/*.yaml; do
+            envsubst < "$f" | kubectl apply -f - -n ${{ env.K8S_NAMESPACE }}
+          done
+
+      - name: Rolling image update
+        run: |
+          kubectl set image deployment/todo-backend \
+            backend=${{ env.ECR_BACKEND }}:${{ env.IMAGE_TAG }} \
+            -n ${{ env.K8S_NAMESPACE }}
+          kubectl set image deployment/todo-frontend \
+            frontend=${{ env.ECR_FRONTEND }}:${{ env.IMAGE_TAG }} \
+            -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/todo-backend  -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+          kubectl rollout status deployment/todo-frontend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+
+      - name: Show deployed pods
+        run: kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Summary
+        run: |
+          echo "🚀 Staging deployed successfully"
+          echo "   Namespace : ${{ env.K8S_NAMESPACE }}"
+          echo "   Image tag : ${{ env.IMAGE_TAG }}"
+          echo "   Actor     : ${{ github.actor }}"
